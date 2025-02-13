@@ -54,6 +54,7 @@ contract YieldFarm is Ownable {
 // 1. Install dependencies: `npm install ethers web3 react`
 // 2. Connect to MetaMask and call contract functions
 
+import { useState } from "react";
 import { ethers } from "ethers";
 
 const contractAddress = "YOUR_CONTRACT_ADDRESS";
@@ -64,33 +65,47 @@ const abi = [
     "function totalStaked() public view returns (uint256)"
 ];
 
-export async function connectWallet() {
-    if (window.ethereum) {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-        return provider.getSigner();
-    } else {
-        console.error("MetaMask not detected");
+export default function YieldFarmUI() {
+    const [amount, setAmount] = useState("");
+    
+    async function connectWallet() {
+        if (window.ethereum) {
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            await window.ethereum.request({ method: "eth_requestAccounts" });
+            return provider.getSigner();
+        } else {
+            alert("MetaMask not detected");
+        }
     }
-}
 
-export async function stakeTokens(amount) {
-    const signer = await connectWallet();
-    const contract = new ethers.Contract(contractAddress, abi, signer);
-    const tx = await contract.stake(ethers.utils.parseEther(amount));
-    await tx.wait();
-}
+    async function stakeTokens() {
+        const signer = await connectWallet();
+        const contract = new ethers.Contract(contractAddress, abi, signer);
+        const tx = await contract.stake(ethers.utils.parseEther(amount));
+        await tx.wait();
+    }
 
-export async function unstakeTokens(amount) {
-    const signer = await connectWallet();
-    const contract = new ethers.Contract(contractAddress, abi, signer);
-    const tx = await contract.unstake(ethers.utils.parseEther(amount));
-    await tx.wait();
-}
+    async function unstakeTokens() {
+        const signer = await connectWallet();
+        const contract = new ethers.Contract(contractAddress, abi, signer);
+        const tx = await contract.unstake(ethers.utils.parseEther(amount));
+        await tx.wait();
+    }
 
-export async function claimRewards() {
-    const signer = await connectWallet();
-    const contract = new ethers.Contract(contractAddress, abi, signer);
-    const tx = await contract.claimRewards();
-    await tx.wait();
+    async function claimRewards() {
+        const signer = await connectWallet();
+        const contract = new ethers.Contract(contractAddress, abi, signer);
+        const tx = await contract.claimRewards();
+        await tx.wait();
+    }
+
+    return (
+        <div>
+            <h1>Yield Farming & Staking</h1>
+            <input type="text" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <button onClick={stakeTokens}>Stake</button>
+            <button onClick={unstakeTokens}>Unstake</button>
+            <button onClick={claimRewards}>Claim Rewards</button>
+        </div>
+    );
 }
